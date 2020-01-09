@@ -20,7 +20,7 @@ public:
 	int writeDataToCsv(std::string fileName);
 	int writeToFileNameWhenBufferIsFull(std::string filename);
 
-	int dumpUcharBufferToConsole(unsigned char *buffer, int bufLen);
+	void dumpUcharBufferToConsole(unsigned char *buffer, int bufLen);
 	int testbed();
 private:
 	const int maxFifoSize = 10000;

@@ -597,7 +597,7 @@ namespace sick_scan
 
 	int SickScanCommonTcp::numberOfDatagramInInputFifo()
   {
-    this->recvQueue.getNumberOfEntriesInQueue();
+    return this->recvQueue.getNumberOfEntriesInQueue();
   }
 
 	int SickScanCommonTcp::readWithTimeout(size_t timeout_ms, char *buffer, int buffer_size, int *bytes_read, bool *exception_occured, bool isBinary)

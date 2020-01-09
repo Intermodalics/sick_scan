@@ -2916,6 +2916,9 @@ namespace sick_scan
                           switch (task)
                           {
 
+                            case process_idle:
+                              break;
+
                             case process_dist:
                             {
                               startAngle = startAngleDiv10000 / 10000.00;
