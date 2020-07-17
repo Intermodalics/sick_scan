@@ -107,7 +107,7 @@ bool SopasBase::init(SopasProtocol protocol,
 	m_weWantFieldData = weWantFieldData;
 	setReadOnlyMode(readOnlyMode);
 
-	m_tcp.setDisconnectCallbackFunction(disconnectFunction, obj);
+	m_udp.setDisconnectCallbackFunction(disconnectFunction, obj);
 
 	return true;
 }
@@ -134,7 +134,7 @@ bool SopasBase::connect()
 
 	// Establish connection here
 	// Set the data input callback for our TCP connection
- 	m_tcp.setReadCallbackFunction(&SopasBase::readCallbackFunctionS, this);	// , this, _1, _2));
+ 	m_udp.setReadCallbackFunction(&SopasBase::readCallbackFunctionS, this);	// , this, _1, _2));
 
 	bool success = openTcpConnection();
 	if (success == true)
@@ -220,7 +220,7 @@ bool SopasBase::openTcpConnection()
 {
 	printInfoMessage("SopasBase::openTcpConnection: Connecting TCP/IP connection to " + m_ipAddress + ":" + toString(m_portNumber) + " ...", m_beVerbose);
 
-	bool success = m_tcp.open(m_ipAddress, m_portNumber, m_beVerbose);
+	bool success = m_udp.open(m_ipAddress, m_portNumber, m_beVerbose);
 	if (success == false)
 	{
 		printError("SopasBase::openTcpConnection: ERROR: Failed to establish TCP connection, aborting!");
@@ -237,9 +237,9 @@ bool SopasBase::openTcpConnection()
 //
 void SopasBase::closeTcpConnection()
 {
-	if (m_tcp.isOpen())
+	if (m_udp.isOpen())
 	{
-		m_tcp.close();
+		m_udp.close();
 	}
 }
 
@@ -507,7 +507,7 @@ void SopasBase::sendCommandBuffer(UINT8* buffer, UINT16 len)
 	UINT8 sendBuffer[1024];
 
 	assert (len < 1000);
-	assert (m_tcp.isOpen() == true);
+	assert (m_udp.isOpen() == true);
 
 	// Frame the string
 	if (m_protocol == CoLa_A)
@@ -523,7 +523,7 @@ void SopasBase::sendCommandBuffer(UINT8* buffer, UINT16 len)
 //	traceBuffer("Cmd buffer contents:", sendBuffer, len);
 	
 	// Send command (blocking)
-	m_tcp.write(sendBuffer, len);
+	m_udp.write(sendBuffer, len);
 }
 
 

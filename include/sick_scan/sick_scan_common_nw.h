@@ -6,7 +6,6 @@
 #define SICK_SCAN_SICK_SCAN_COMMON_NW_H
 
 #include "sick_scan/tcp/BasicDatatypes.hpp"
-#include "sick_scan/tcp/tcp.hpp"
 #include <map>	// for std::map
 
 //
@@ -16,6 +15,7 @@
 //      Author: sick
 //
 #include "sick_scan/tcp/tcp.hpp"
+#include "sick_scan/tcp/udp.hpp"
 #include "sick_scan/tcp/errorhandler.hpp"
 #include "sick_scan/tcp/toolbox.hpp"
 #include "sick_scan/tcp/Mutex.hpp"
@@ -43,9 +43,9 @@ public:
     ~SickScanCommonNw();
     bool init(std::string ipAddress,
               unsigned short portNumber,
-              Tcp::DisconnectFunction disconnectFunction,
+              Udp::DisconnectFunction disconnectFunction,
               void* obj);
-    bool setReadCallbackFunction(Tcp::ReadFunction readFunction,
+    bool setReadCallbackFunction(Udp::ReadFunction readFunction,
                                                    void* obj);
 
     /// Connects to a sensor via tcp and reads the device name.
@@ -66,8 +66,8 @@ public:
 
 private:
     // TCP
-    bool openTcpConnection();
-    void closeTcpConnection();
+    bool openUdpConnection();
+    void closeUdpConnection();
 
     /// Function that will be called on incomming data via tcp.
     static void readCallbackFunctionS(void* obj, UINT8* buffer, UINT32& numOfBytes);
@@ -94,7 +94,7 @@ private:
 
 
     // TCP
-    Tcp m_tcp;
+    Udp m_udp;
     std::string m_ipAddress;
     UINT16 m_portNumber;
     SopasProtocol m_protocol;

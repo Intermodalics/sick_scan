@@ -23,10 +23,10 @@
 #include "sick_scan/tcp/colaa.hpp"
 #include "sick_scan/tcp/colab.hpp"
 #include "sick_scan/tcp/BasicDatatypes.hpp"
-#include "sick_scan/tcp/tcp.hpp"
+#include "sick_scan/tcp/udp.hpp"
 #include <map>	// for std::map
 
-#include "sick_scan/tcp/tcp.hpp"
+#include "sick_scan/tcp/udp.hpp"
 #include "sick_scan/tcp/errorhandler.hpp"
 #include "sick_scan/tcp/toolbox.hpp"
 #include "sick_scan/tcp/Mutex.hpp"
@@ -55,7 +55,7 @@ SickScanCommonNw::~SickScanCommonNw()
 //
 bool SickScanCommonNw::disconnect()
 {
-  closeTcpConnection();
+  closeUdpConnection();
 
   // Change back to CONSTRUCTED
   m_state = CONSTRUCTED;
@@ -69,20 +69,20 @@ bool SickScanCommonNw::disconnect()
 //
     bool SickScanCommonNw::init(std::string ipAddress,
                          unsigned short portNumber,
-                         Tcp::DisconnectFunction disconnectFunction,
+                         Udp::DisconnectFunction disconnectFunction,
                          void* obj)
     {
       m_ipAddress = ipAddress;
       m_portNumber = portNumber;
-      m_tcp.setDisconnectCallbackFunction(disconnectFunction, obj);
+      m_udp.setDisconnectCallbackFunction(disconnectFunction, obj);
       return true;
     }
 
 
-    bool SickScanCommonNw::setReadCallbackFunction(Tcp::ReadFunction readFunction,
+    bool SickScanCommonNw::setReadCallbackFunction(Udp::ReadFunction readFunction,
                                                    void* obj)
     {
-          m_tcp.setReadCallbackFunction(readFunction, obj);
+          m_udp.setReadCallbackFunction(readFunction, obj);
           return(true);
     }
 //
@@ -104,9 +104,9 @@ bool SickScanCommonNw::disconnect()
 
       // Establish connection here
       // Set the data input callback for our TCP connection
-      // m_tcp.setReadCallbackFunction(&SickScanCommonNw::readCallbackFunctionS, this);	// , this, _1, _2));
+      // m_udp.setReadCallbackFunction(&SickScanCommonNw::readCallbackFunctionS, this);	// , this, _1, _2));
 
-      bool success = openTcpConnection();
+      bool success = openUdpConnection();
       if (success == true)
       {
         // Check if scanner type matches
@@ -137,14 +137,14 @@ bool SickScanCommonNw::disconnect()
  *
  * true = Connected, false = no connection
  */
-    bool SickScanCommonNw::openTcpConnection()
+    bool SickScanCommonNw::openUdpConnection()
     {
-     //  printInfoMessage("SickScanCommonNw::openTcpConnection: Connecting TCP/IP connection to " + m_ipAddress + ":" + toString(m_portNumber) + " ...", m_beVerbose);
+     //  printInfoMessage("SickScanCommonNw::openUdpConnection: Connecting TCP/IP connection to " + m_ipAddress + ":" + toString(m_portNumber) + " ...", m_beVerbose);
 
-      bool success = m_tcp.open(m_ipAddress, m_portNumber, m_beVerbose);
+      bool success = m_udp.open(m_ipAddress, m_portNumber, m_beVerbose);
       if (success == false)
       {
-        // printError("SickScanCommonNw::openTcpConnection: ERROR: Failed to establish TCP connection, aborting!");
+        // printError("SickScanCommonNw::openUdpConnection: ERROR: Failed to establish TCP connection, aborting!");
         return false;
       }
 
@@ -156,11 +156,11 @@ bool SickScanCommonNw::disconnect()
 //
 // Close TCP-connection and shut down read thread
 //
-    void SickScanCommonNw::closeTcpConnection()
+    void SickScanCommonNw::closeUdpConnection()
     {
-      if (m_tcp.isOpen())
+      if (m_udp.isOpen())
       {
-        m_tcp.close();
+        m_udp.close();
       }
     }
 
@@ -423,7 +423,7 @@ bool SickScanCommonNw::disconnect()
  */
     void SickScanCommonNw::sendCommandBuffer(UINT8* buffer, UINT16 len)
     {
-      m_tcp.write(buffer, len);
+      m_udp.write(buffer, len);
     }
 
 

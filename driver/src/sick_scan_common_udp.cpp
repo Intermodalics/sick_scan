@@ -1,6 +1,6 @@
 /**
 * \file
-* \brief Laser Scanner communication (TCP Helper Class)
+* \brief Laser Scanner communication (UDP Helper Class)
 * Copyright (C) 2013, Osnabrück University
 * Copyright (C) 2017, Ing.-Buero Dr. Michael Lehning, Hildesheim
 * Copyright (C) 2017, SICK AG, Waldkirch
@@ -55,7 +55,7 @@
 
 #endif
 
-#include <sick_scan/sick_scan_common_tcp.h>
+#include <sick_scan/sick_scan_common_udp.h>
 #include <sick_scan/tcp/colaa.hpp>
 #include <sick_scan/tcp/colab.hpp>
 
@@ -167,7 +167,7 @@ namespace sick_scan
 
 
 
-	SickScanCommonTcp::SickScanCommonTcp(const std::string &hostname, const std::string &port, int &timelimit, SickGenericParser* parser, char cola_dialect_id)
+	SickScanCommonUdp::SickScanCommonUdp(const std::string &hostname, const std::string &port, int &timelimit, SickGenericParser* parser, char cola_dialect_id)
 		:
 		SickScanCommon(parser),
 		socket_(io_service_),
@@ -196,54 +196,54 @@ namespace sick_scan
 		// io_service_.setReadCallbackFunction(boost::bind(&SopasDevice::readCallbackFunction, this, _1, _2));
 
 		// Set up the deadline actor to implement timeouts.
-		// Based on blocking TCP example on:
+		// Based on blocking UDP example on:
 		// http://www.boost.org/doc/libs/1_46_0/doc/html/boost_asio/example/timeouts/blocking_tcp_client.cpp
 		deadline_.expires_at(boost::posix_time::pos_infin);
 		checkDeadline();
 
 	}
 
-	SickScanCommonTcp::~SickScanCommonTcp()
+	SickScanCommonUdp::~SickScanCommonUdp()
 	{
 		// stop_scanner();
 		close_device();
 	}
 
-	using boost::asio::ip::tcp;
+	using boost::asio::ip::udp;
 	using boost::lambda::var;
 	using boost::lambda::_1;
 
 
-	void SickScanCommonTcp::disconnectFunction()
+	void SickScanCommonUdp::disconnectFunction()
 	{
 
 	}
 
-	void SickScanCommonTcp::disconnectFunctionS(void *obj)
+	void SickScanCommonUdp::disconnectFunctionS(void *obj)
 	{
 		if (obj != NULL)
 		{
-			((SickScanCommonTcp *)(obj))->disconnectFunction();
+			((SickScanCommonUdp *)(obj))->disconnectFunction();
 		}
 	}
 
-	void SickScanCommonTcp::readCallbackFunctionS(void* obj, UINT8* buffer, UINT32& numOfBytes)
+	void SickScanCommonUdp::readCallbackFunctionS(void* obj, UINT8* buffer, UINT32& numOfBytes)
 	{
-		((SickScanCommonTcp*)obj)->readCallbackFunction(buffer, numOfBytes);
+		((SickScanCommonUdp*)obj)->readCallbackFunction(buffer, numOfBytes);
 	}
 
 
-	void SickScanCommonTcp::setReplyMode(int _mode)
+	void SickScanCommonUdp::setReplyMode(int _mode)
 	{
 		m_replyMode = _mode;
 	}
-	int SickScanCommonTcp::getReplyMode()
+	int SickScanCommonUdp::getReplyMode()
 	{
 		return(m_replyMode);
 	}
 
 #if 0
-	void SickScanCommonTcp::setProtocolType(char cola_dialect_id)
+	void SickScanCommonUdp::setProtocolType(char cola_dialect_id)
 	{
 		if ((cola_dialect_id == 'a') || (cola_dialect_id == 'A'))
 		{
@@ -260,7 +260,7 @@ namespace sick_scan
 		\param _emulFlag: Flag to switch emulation on or off
 		\return
 */
-	void SickScanCommonTcp::setEmulSensor(bool _emulFlag)
+	void SickScanCommonUdp::setEmulSensor(bool _emulFlag)
 	{
 		m_emulSensor = _emulFlag;
 	}
@@ -270,7 +270,7 @@ namespace sick_scan
 		\param
 		\return bool: Flag to switch emulation on or off
 */
-	bool SickScanCommonTcp::getEmulSensor()
+	bool SickScanCommonUdp::getEmulSensor()
 	{
 		return(m_emulSensor);
 	}
@@ -282,7 +282,7 @@ namespace sick_scan
 	// Return: 0 : No (complete) frame found
 	//        >0 : Frame length
 	//
-	SopasEventMessage SickScanCommonTcp::findFrameInReceiveBuffer()
+	SopasEventMessage SickScanCommonUdp::findFrameInReceiveBuffer()
 	{
 		UINT32 frameLen = 0;
 		UINT32 i;
@@ -456,7 +456,7 @@ namespace sick_scan
  * hereingekommen sind.
  */
 
-	void SickScanCommonTcp::processFrame(ros::Time timeStamp, SopasEventMessage& frame)
+	void SickScanCommonUdp::processFrame(ros::Time timeStamp, SopasEventMessage& frame)
 	{
 
 		if (getProtocolType() == CoLa_A)
@@ -477,7 +477,7 @@ namespace sick_scan
     recvQueue.push(dataGramWidthTimeStamp);
     	}
 
-	void SickScanCommonTcp::readCallbackFunction(UINT8* buffer, UINT32& numOfBytes)
+	void SickScanCommonUdp::readCallbackFunction(UINT8* buffer, UINT32& numOfBytes)
 	{
     ros::Time rcvTimeStamp = ros::Time::now(); // stamp received datagram
 		bool beVerboseHere = false;
@@ -495,7 +495,7 @@ namespace sick_scan
 		else
 		{
 			// printInfoMessage("SickScanCommonNw::readCallbackFunction(): Transferring " + ::toString(bytesToBeTransferred) +
-			//                   " bytes from TCP to input buffer.", beVerboseHere);
+			//                   " bytes from UDP to input buffer.", beVerboseHere);
 		}
 
 		if (bytesToBeTransferred > 0)
@@ -535,7 +535,7 @@ namespace sick_scan
 		}
 		else
 		{
-			// There was input data from the TCP interface, but our input buffer was unable to hold a single byte.
+			// There was input data from the UDP interface, but our input buffer was unable to hold a single byte.
 			// Either we have not read data from our buffer for a long time, or something has gone wrong. To re-sync,
 			// we clear the input buffer here.
 			m_numberOfBytesInReceiveBuffer = 0;
@@ -543,7 +543,7 @@ namespace sick_scan
 	}
 
 
-	int SickScanCommonTcp::init_device()
+	int SickScanCommonUdp::init_device()
 	{
 		int portInt;
 		sscanf(port_.c_str(), "%d", &portInt);
@@ -559,28 +559,28 @@ namespace sick_scan
 		return ExitSuccess;
 	}
 
-	int SickScanCommonTcp::close_device()
+	int SickScanCommonUdp::close_device()
 	{
-		ROS_WARN("Disconnecting TCP-Connection.");
+		ROS_WARN("Disconnecting UDP-Connection.");
 		m_nw.disconnect();
 		return 0;
 	}
 
 
-	bool SickScanCommonTcp::stopScanData()
+	bool SickScanCommonUdp::stopScanData()
 	{
 		stop_scanner();
 		return(true);
 	}
 
-	void SickScanCommonTcp::handleRead(boost::system::error_code error, size_t bytes_transfered)
+	void SickScanCommonUdp::handleRead(boost::system::error_code error, size_t bytes_transfered)
 	{
 		ec_ = error;
 		bytes_transfered_ += bytes_transfered;
 	}
 
 
-	void SickScanCommonTcp::checkDeadline()
+	void SickScanCommonUdp::checkDeadline()
 	{
 		if (deadline_.expires_at() <= boost::asio::deadline_timer::traits_type::now())
 		{
@@ -591,16 +591,16 @@ namespace sick_scan
 		}
 
 		// Nothing bad happened, go back to sleep
-		deadline_.async_wait(boost::bind(&SickScanCommonTcp::checkDeadline, this));
+		deadline_.async_wait(boost::bind(&SickScanCommonUdp::checkDeadline, this));
 	}
 
 
-	int SickScanCommonTcp::numberOfDatagramInInputFifo()
+	int SickScanCommonUdp::numberOfDatagramInInputFifo()
   {
     return this->recvQueue.getNumberOfEntriesInQueue();
   }
 
-	int SickScanCommonTcp::readWithTimeout(size_t timeout_ms, char *buffer, int buffer_size, int *bytes_read, bool *exception_occured, bool isBinary)
+	int SickScanCommonUdp::readWithTimeout(size_t timeout_ms, char *buffer, int buffer_size, int *bytes_read, bool *exception_occured, bool isBinary)
 	{
 		// Set up the deadline to the proper timeout, error and delimiters
 		deadline_.expires_from_now(boost::posix_time::milliseconds(timeout_ms));
@@ -639,7 +639,7 @@ namespace sick_scan
 	/**
 	 * Send a SOPAS command to the device and print out the response to the console.
 	 */
-	int SickScanCommonTcp::sendSOPASCommand(const char* request, std::vector<unsigned char> * reply, int cmdLen)
+	int SickScanCommonUdp::sendSOPASCommand(const char* request, std::vector<unsigned char> * reply, int cmdLen)
 	{
 #if 0
 		if (!socket_.is_open()) {
@@ -755,7 +755,7 @@ namespace sick_scan
 	}
 
 
-	int SickScanCommonTcp::get_datagram(ros::Time &recvTimeStamp, unsigned char *receiveBuffer, int bufferSize, int *actual_length,
+	int SickScanCommonUdp::get_datagram(ros::Time &recvTimeStamp, unsigned char *receiveBuffer, int bufferSize, int *actual_length,
                                         bool isBinaryProtocol, int *numberOfRemainingFifoEntries)
 	{
     if (NULL != numberOfRemainingFifoEntries)

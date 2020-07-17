@@ -70,7 +70,7 @@
 
 #endif
 
-#include <sick_scan/sick_scan_common_tcp.h>
+#include <sick_scan/sick_scan_common_udp.h>
 
 #include <sick_scan/sick_generic_parser.h>
 #include <sick_scan/sick_generic_laser.h>
@@ -86,7 +86,7 @@
 #include <signal.h>
 
 static bool isInitialized = false;
-static sick_scan::SickScanCommonTcp *s = NULL;
+static sick_scan::SickScanCommonUdp *s = NULL;
 static std::string versionInfo = "???";
 
 void setVersionInfo(std::string _versionInfo)
@@ -318,7 +318,7 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
         // attempt to connect/reconnect
         delete s;  // disconnect scanner
         if (useTCP)
-          s = new sick_scan::SickScanCommonTcp(hostname, port, timelimit, parser, colaDialectId);
+          s = new sick_scan::SickScanCommonUdp(hostname, port, timelimit, parser, colaDialectId);
         else
         {
           ROS_ERROR("TCP is not switched on. Probably hostname or port not set. Use roslaunch to start node.");

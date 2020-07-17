@@ -107,6 +107,7 @@ add_library(sick_scan_lib
         driver/src/sick_scan_common.cpp
         driver/src/abstract_parser.cpp
 	    driver/src/tcp/tcp.cpp
+	    driver/src/tcp/udp.cpp
 	    driver/src/tcp/Mutex.cpp
 	    driver/src/tcp/SickThread.cpp
         driver/src/tcp/errorhandler.cpp
@@ -116,6 +117,7 @@ add_library(sick_scan_lib
         driver/src/tcp/colab.cpp
 	    driver/src/binScanf.cpp
         driver/src/sick_scan_common_tcp.cpp
+        driver/src/sick_scan_common_udp.cpp
 	    driver/src/sick_generic_radar.cpp
 	    driver/src/sick_generic_imu.cpp
 	    driver/src/sick_generic_parser.cpp

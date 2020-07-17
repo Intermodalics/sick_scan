@@ -10,7 +10,7 @@
 
 #include "sick_scan/tcp/BasicDatatypes.hpp"
 // #include "sick_scan/tcp/datatypes/Scan.hpp"
-#include "sick_scan/tcp/interfaces/tcp.hpp"
+#include "sick_scan/tcp/interfaces/udp.hpp"
 
 #include "colaa.hpp"
 #include "colab.hpp"
@@ -404,7 +404,7 @@ private:
 	UINT8 m_receiveBuffer[25000]; ///< Low-Level receive buffer for all data (25000 should be enough for NAV300 Events)
 
 	// TCP
-	Tcp m_tcp;
+	Udp m_udp;
 	std::string m_ipAddress;
 	UINT16 m_portNumber;
 
