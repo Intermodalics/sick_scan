@@ -3321,9 +3321,11 @@ namespace sick_scan
                 if (sendMsg &
                     outputChannelFlagId)  // publish only configured channels - workaround for cfg-bug MRS1104
                 {
-
-                  pub_.publish(msg);
-
+                  if (diagnosticPub_) {
+                    diagnosticPub_->publish(msg);
+                  } else {
+                    pub_.publish(msg);
+                  }
                 }
 #else
                 printf("MSG received...");
@@ -4118,6 +4120,3 @@ namespace sick_scan
   // SopasProtocol m_protocolId;
 
 } /* namespace sick_scan */
-
-
-
