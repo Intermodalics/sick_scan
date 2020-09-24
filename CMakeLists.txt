@@ -172,9 +172,10 @@ add_executable(sick_scan_test
 	driver/src/tinyxml/tinyxmlparser.cpp
 	)
 target_link_libraries(sick_scan_test
-        ${catkin_LIBRARIES}
+        sick_scan_lib
         ${roslib_LIBRARIES}
-        sick_scan_lib)
+        ${catkin_LIBRARIES}
+)
 
 #
 #  Sensor alignment tool
