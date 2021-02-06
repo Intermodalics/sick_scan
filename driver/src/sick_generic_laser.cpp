@@ -74,6 +74,9 @@
 
 #include <sick_scan/sick_generic_parser.h>
 #include <sick_scan/sick_generic_laser.h>
+#include <sick_scan/sick_scan_services.h>
+
+
 #ifdef _MSC_VER
 #include "sick_scan/rosconsole_simu.hpp"
 #endif
@@ -97,10 +100,13 @@ void setVersionInfo(std::string _versionInfo)
 std::string getVersionInfo()
 {
 
-  return(versionInfo);
+  return (versionInfo);
 }
 
-enum NodeRunState { scanner_init, scanner_run, scanner_finalize };
+enum NodeRunState
+{
+  scanner_init, scanner_run, scanner_finalize
+};
 
 NodeRunState runState = scanner_init;  //
 
@@ -114,7 +120,7 @@ NodeRunState runState = scanner_init;  //
 */
 
 bool getTagVal(std::string tagVal, std::string &tag, std::string &val)
-  {
+{
   bool ret = false;
   std::size_t pos;
   pos = tagVal.find(":=");
@@ -131,12 +137,12 @@ bool getTagVal(std::string tagVal, std::string &tag, std::string &val)
     ret = true;
   }
   return (ret);
-  }
+}
 
 
 void my_handler(int signalRecv)
 {
-  ROS_INFO("Caught signal %d\n",signalRecv);
+  ROS_INFO("Caught signal %d\n", signalRecv);
   ROS_INFO("good bye");
   ROS_INFO("You are leaving the following version of this node:");
   ROS_INFO("%s", getVersionInfo().c_str());
@@ -161,7 +167,7 @@ void my_handler(int signalRecv)
 \sa main
 */
 int mainGenericLaser(int argc, char **argv, std::string nodeName)
-  {
+{
   std::string tag;
   std::string val;
 
@@ -195,7 +201,7 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
   }
 
   ros::init(argc, argv, nodeName, ros::init_options::NoSigintHandler);  // scannerName holds the node-name
-  signal (SIGINT,my_handler);
+  signal(SIGINT, my_handler);
 
   ros::NodeHandle nhPriv("~");
 
@@ -217,7 +223,7 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
 #else
     nhPriv.setParam("hostname", "192.168.0.4");
     nhPriv.setParam("imu_enable", true);
-    nhPriv.setParam("cloud_topic","pt_cloud");
+    nhPriv.setParam("cloud_topic", "pt_cloud");
 #endif
   }
 
@@ -278,16 +284,18 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
     if (use_binary_protocol == true)
     {
       ROS_INFO("Binary protocol activated");
-    } else
+    }
+    else
     {
       if (parser->getCurrentParamPtr()->getNumberOfLayers() > 4)
       {
         nhPriv.setParam("sopas_protocol_type", true);
         use_binary_protocol = true;
         ROS_WARN("This scanner type does not support ASCII communication.\n"
-                         "Binary communication has been activated.\n"
-                         "The parameter \"sopas_protocol_type\" has been set to \"True\".");
-      } else
+                 "Binary communication has been activated.\n"
+                 "The parameter \"sopas_protocol_type\" has been set to \"True\".");
+      }
+      else
       {
         ROS_INFO("ASCII protocol activated");
       }
@@ -299,26 +307,30 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
   if (parser->getCurrentParamPtr()->getUseBinaryProtocol())
   {
     colaDialectId = 'B';
-  } else
+  }
+  else
   {
     colaDialectId = 'A';
   }
 
-
+  bool start_services = false;
+  sick_scan::SickScanServices* services = 0;
   int result = sick_scan::ExitError;
 
   sick_scan::SickScanConfig cfg;
 
   while (ros::ok())
   {
-    switch(runState)
+    switch (runState)
     {
       case scanner_init:
         ROS_INFO("Start initialising scanner [Ip: %s] [Port: %s]", hostname.c_str(), port.c_str());
         // attempt to connect/reconnect
         delete s;  // disconnect scanner
         if (useTCP)
+        {
           s = new sick_scan::SickScanCommonTcp(hostname, port, timelimit, parser, colaDialectId);
+        }
         else
         {
           ROS_ERROR("TCP is not switched on. Probably hostname or port not set. Use roslaunch to start node.");
@@ -332,11 +344,18 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
         }
         result = s->init();
 
+        // Start ROS services
+        if (true == nhPriv.getParam("start_services", start_services) && true == start_services)
+        {
+            services = new sick_scan::SickScanServices(&nhPriv, s, parser->getCurrentParamPtr()->getUseBinaryProtocol());
+            ROS_INFO("SickScanServices: ros services initialized");
+        }
+
         isInitialized = true;
         signal(SIGINT, SIG_DFL); // change back to standard signal handler after initialising
         if (result == sick_scan::ExitSuccess) // OK -> loop again
         {
-          if(changeIP)
+          if (changeIP)
           {
             runState = scanner_finalize;
           }
@@ -368,6 +387,11 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
         break;
     }
   }
+  if(services)
+  {
+    delete services;
+    services = 0;
+  }
   if (s != NULL)
   {
     delete s; // close connnect
@@ -378,4 +402,4 @@ int mainGenericLaser(int argc, char **argv, std::string nodeName)
   }
   return result;
 
-  }
+}
